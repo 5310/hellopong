@@ -24,16 +24,8 @@ draw2D.configure({
 
 })();
 
-// Initialize physics.
-(function() {
-	
-physDevice = Physics2DDevice.create();
-physDebug = Physics2DDebugDraw.create({
-    graphicsDevice : graphicsDevice
-});
-physDebug.setPhysics2DViewport(draw2D.getViewport());
-
 // Input device.
+(function() {
 
 inputDevice = TurbulenzEngine.createInputDevice();
 
@@ -44,6 +36,17 @@ inputDevice.addEventListener('mousedown', function( mouseCode, x, y ) {
 inputDevice.addEventListener('mouseover', function( x, y ) {
 	console.log("mouseover "+x+" "+y);
 });
+
+})();
+
+// Initialize physics.
+(function() {
+	
+physDevice = Physics2DDevice.create();
+physDebug = Physics2DDebugDraw.create({
+    graphicsDevice : graphicsDevice
+});
+physDebug.setPhysics2DViewport(draw2D.getViewport());
 
 })();
 
@@ -122,7 +125,22 @@ paddleA.goal.rigidBody = physDevice.createRigidBody({
 world.addRigidBody(paddleA.goal.rigidBody);
 
 inputDevice.addEventListener('mouseover', function( x, y ) {
-	paddleA.goal.rigidBody.setPosition(draw2D.viewportMap(x, y));
+	
+	var oldPosition = paddleA.goal.rigidBody.getPosition();
+	var newPosition = draw2D.viewportMap(x, y);
+	
+	var min = 0.75; var max = 5;
+	newPosition[0] = newPosition[0] < min ? min : newPosition[0] > max ? max : newPosition[0];
+	
+	paddleA.goal.rigidBody.setPosition(newPosition);
+	
+	var movement = [ newPosition[0]-oldPosition[0], newPosition[1]-oldPosition[1] ];
+	var distance = Math.pow( Math.pow(movement[0], 2 ) + Math.pow(movement[1], 2 ), 0.5 );
+	var angle = Math.atan2( movement[1], movement[0] );
+	var rotationDamp = 10;
+	var rotation = paddleA.rigidBody.getRotation() + (angle-paddleA.rigidBody.getRotation())/rotationDamp * distance
+	paddleA.rigidBody.setRotation(rotation);
+	
 });
 
 paddleA.goal.constraintA = physDevice.createPointConstraint({
