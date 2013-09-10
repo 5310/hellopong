@@ -37,6 +37,10 @@ inputDevice.addEventListener('mouseover', function( x, y ) {
 	console.log("mouseover "+x+" "+y);
 });
 
+inputDevice.addEventListener('touchmove', function(touchEvent) {
+    console.log("touchmove");
+});
+
 })();
 
 // Initialize physics.
@@ -125,7 +129,7 @@ world.addRigidBody(paddleA.rigidBody);
 
 paddleA.goal.rigidBody = physDevice.createRigidBody({
     type: 'kinematic',
-    position: [5, 5],
+    position: paddleA.position,
 });
 world.addRigidBody(paddleA.goal.rigidBody);
 	
@@ -145,9 +149,9 @@ paddleA.move = function( x, y ) {
 	paddleA.rigidBody.setRotation(rotation);
 	
 };
-inputDevice.addEventListener('mouseover', function( x, y ) {
+/*inputDevice.addEventListener('mouseover', function( x, y ) {
 	paddleA.move( x, y );
-});
+});*/
 
 paddleA.goal.constraintA = physDevice.createPointConstraint({
 	bodyA: paddleA.goal.rigidBody,
@@ -205,7 +209,7 @@ world.addRigidBody(paddleB.rigidBody);
 
 paddleB.goal.rigidBody = physDevice.createRigidBody({
     type: 'kinematic',
-    position: [5, 5],
+    position: paddleB.position,
 });
 world.addRigidBody(paddleB.goal.rigidBody);
 	
@@ -225,9 +229,9 @@ paddleB.move = function( x, y ) {
 	paddleB.rigidBody.setRotation(rotation);
 	
 };
-inputDevice.addEventListener('mouseover', function( x, y ) {
+/*inputDevice.addEventListener('mouseover', function( x, y ) {
 	paddleB.move( x, y );
-});
+});*/
 
 paddleB.goal.constraintA = physDevice.createPointConstraint({
 	bodyA: paddleB.goal.rigidBody,
@@ -251,6 +255,28 @@ world.addConstraint(paddleB.goal.constraintB);
 
 
 })();
+
+// Paddle controls.
+var paddleControl = function ( x, y ) {
+	var position = draw2D.viewportMap(x, y);
+	if ( position[0] <= 7 ) {
+		paddleA.move( x, y );
+	}
+	if ( position[0] >= 20-7 ) {
+		paddleB.move( x, y );
+	}
+};
+inputDevice.addEventListener('touchmove', function(touchEvent) {
+    var touches = touchEvent.gameTouches;
+    for ( var i = 0; i < touches.length; i++ ) {
+		var x = touches[i].positionX;
+		var y = touches[i].positionY;
+		paddleControl( x, y );
+	}
+});
+inputDevice.addEventListener('mouseover', function( x, y ) {
+	paddleControl( x, y );
+});
 
 
 // Walls.
