@@ -1,0 +1,15 @@
+To compile the project as is, do the following from the Turbulenz environment.
+
+1.	Satisfy dependencies into a single file:
+
+>	maketzjs -t . -o hellopong.js main.js
+
+	That templatel (-t) option is mandatory, or else the tool will have no idea what dependencies to call and from where.
+	The output file too is necessary. The input is the last one, of course.
+
+2.	Compile dependency satisfied file to tzjs:
+
+>	maketzjs -t . -o hellopong.tzjs hellopong.js
+
+	Once again, template directory is required.
+	Output is the tzjs file, and the last one is the previously dep-satisfied script.
