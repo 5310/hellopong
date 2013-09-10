@@ -3,6 +3,7 @@
 #################
 
 hellopong.*
+manifest.yaml
 
 local/*
 .goutputstream-*
