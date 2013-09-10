@@ -253,10 +253,10 @@ paddleB.goal.constraintB = physDevice.createPointConstraint({
 });
 world.addConstraint(paddleB.goal.constraintB);
 
-
 })();
 
 // Paddle controls.
+(function() {
 var paddleControl = function ( x, y ) {
 	var position = draw2D.viewportMap(x, y);
 	if ( position[0] <= 7 ) {
@@ -285,6 +285,7 @@ inputDevice.addEventListener('touchstart', function(touchEvent) {
 inputDevice.addEventListener('mouseover', function( x, y ) {
 	paddleControl( x, y );
 });
+})();
 
 // Walls.
 (function() {
@@ -412,6 +413,7 @@ function draw() {
 	physDebug.drawWorld(world);
 	physDebug.end();	
 }
+
 
 
 // Pan viewport.
