@@ -274,10 +274,17 @@ inputDevice.addEventListener('touchmove', function(touchEvent) {
 		paddleControl( x, y );
 	}
 });
+inputDevice.addEventListener('touchstart', function(touchEvent) {
+    var touches = touchEvent.gameTouches;
+    for ( var i = 0; i < touches.length; i++ ) {
+		var x = touches[i].positionX;
+		var y = touches[i].positionY;
+		paddleControl( x, y );
+	}
+});
 inputDevice.addEventListener('mouseover', function( x, y ) {
 	paddleControl( x, y );
 });
-
 
 // Walls.
 (function() {
