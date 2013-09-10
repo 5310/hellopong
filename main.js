@@ -51,7 +51,6 @@ physDebug.setPhysics2DViewport(draw2D.getViewport());
 })();
 
 
-
 // Create physics world.
 (function() {
 	
@@ -67,6 +66,7 @@ world = physDevice.createWorld({
 ball = {
 	width: 1,
 	height: 1,
+	mass: 1,
 	position: [ viewWidth/2, viewHeight/2],
 	material: physDevice.createMaterial({
 		elasticity : 1
@@ -82,13 +82,13 @@ ball.rigidBody = physDevice.createRigidBody({
 	shapes: [
 		ball.shape
 	],
-    mass: 10,
+    mass: ball.mass,
 	position: ball.position,
 	linearDrag: 0,
 	bullet: true,
 });
 world.addRigidBody(ball.rigidBody);
-ball.rigidBody.applyImpulse([ ball.rigidBody.getMass()*10, 0 ]);
+ball.rigidBody.applyImpulse([ ball.mass*10*((Math.random()*2)-1), ball.mass*10*((Math.random()*2)-1) ]);
 
 })();
 
@@ -98,10 +98,14 @@ ball.rigidBody.applyImpulse([ ball.rigidBody.getMass()*10, 0 ]);
 paddleA = {
 	width: 1,
 	height: 3,
+	marginMin: 0.75,
+	marginMax: 5,
+	rotationDamp: 0.1,
 	position: [ 1.5, viewHeight/2 ],
 	goal: { rigidBody: undefined, constraintA: undefined, constraintA: undefined },
 	material: physDevice.createMaterial({
-		elasticity : 1
+		elasticity : 1,
+		staticFriction: 0,
 	})
 };
 paddleA.shape = physDevice.createPolygonShape({
@@ -123,24 +127,25 @@ paddleA.goal.rigidBody = physDevice.createRigidBody({
     position: [5, 5],
 });
 world.addRigidBody(paddleA.goal.rigidBody);
-
-inputDevice.addEventListener('mouseover', function( x, y ) {
+	
+paddleA.move = function( x, y ) {
 	
 	var oldPosition = paddleA.goal.rigidBody.getPosition();
 	var newPosition = draw2D.viewportMap(x, y);
-	
-	var min = 0.75; var max = 5;
-	newPosition[0] = newPosition[0] < min ? min : newPosition[0] > max ? max : newPosition[0];
-	
+
+	newPosition[0] = newPosition[0] < paddleA.marginMin ? paddleA.marginMin : newPosition[0] > paddleA.marginMax ? paddleA.marginMax : newPosition[0];
 	paddleA.goal.rigidBody.setPosition(newPosition);
 	
 	var movement = [ newPosition[0]-oldPosition[0], newPosition[1]-oldPosition[1] ];
 	var distance = Math.pow( Math.pow(movement[0], 2 ) + Math.pow(movement[1], 2 ), 0.5 );
 	var angle = Math.atan2( movement[1], movement[0] );
-	var rotationDamp = 10;
-	var rotation = paddleA.rigidBody.getRotation() + (angle-paddleA.rigidBody.getRotation())/rotationDamp * distance
+
+	var rotation = paddleA.rigidBody.getRotation() + (angle-paddleA.rigidBody.getRotation())*paddleA.rotationDamp * distance
 	paddleA.rigidBody.setRotation(rotation);
 	
+};
+inputDevice.addEventListener('mouseover', function( x, y ) {
+	paddleA.move( x, y );
 });
 
 paddleA.goal.constraintA = physDevice.createPointConstraint({
@@ -294,4 +299,31 @@ function draw() {
 	physDebug.begin();
 	physDebug.drawWorld(world);
 	physDebug.end();	
+}
+
+
+// Pan viewport.
+function pan( arguments ) {
+	
+	var viewport = draw2D.getViewport();
+	
+	viewport[0] = arguments.x !== undefined ? arguments.x : viewport[0];
+	viewport[1] = arguments.y !== undefined ? arguments.y : viewport[1];
+	
+	viewport[2] = arguments.width !== undefined ? arguments.width : viewport[2];
+	viewport[3] = arguments.height !== undefined ? arguments.height : viewport[3];
+	
+	if ( arguments.dx !== undefined && arguments.dy !== undefined ) {
+		for ( var i = 0; i < viewport.length; i+=2 ) {
+			viewport[i] -= arguments.dx !== undefined ? arguments.dx : 0;
+			viewport[i+1] -= arguments.dy !== undefined ? arguments.dy : 0;
+		}
+	}
+	
+	draw2D.configure({
+		viewportRectangle: viewport,
+		scaleMode: 'scale'
+	});
+	physDebug.setPhysics2DViewport(draw2D.getViewport());
+	
 }
