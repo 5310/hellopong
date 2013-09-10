@@ -421,16 +421,28 @@ function pan( arguments ) {
 	
 	var viewport = draw2D.getViewport();
 	
-	viewport[0] = arguments.x !== undefined ? arguments.x : viewport[0];
-	viewport[1] = arguments.y !== undefined ? arguments.y : viewport[1];
+	if ( arguments.x !== undefined ) {
+		var width = viewport[2]-viewport[0];
+		viewport[0] = arguments.x;
+		viewport[2] = arguments.x + width;
+	}
+	if ( arguments.y !== undefined ) {
+		var height = viewport[3]-viewport[1];
+		viewport[1] = arguments.y;
+		viewport[3] = arguments.y + width;
+	}
 	
 	viewport[2] = arguments.width !== undefined ? arguments.width : viewport[2];
 	viewport[3] = arguments.height !== undefined ? arguments.height : viewport[3];
 	
-	if ( arguments.dx !== undefined && arguments.dy !== undefined ) {
+	if ( arguments.dx !== undefined ) {
 		for ( var i = 0; i < viewport.length; i+=2 ) {
-			viewport[i] -= arguments.dx !== undefined ? arguments.dx : 0;
-			viewport[i+1] -= arguments.dy !== undefined ? arguments.dy : 0;
+			viewport[i] -= arguments.dx;
+		}
+	}
+	if ( arguments.dy !== undefined ) {
+		for ( var i = 0; i < viewport.length; i+=2 ) {
+			viewport[i+1] -= arguments.dy;
 		}
 	}
 	
