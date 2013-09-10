@@ -98,10 +98,11 @@ ball.rigidBody.applyImpulse([ ball.mass*10*((Math.random()*2)-1), ball.mass*10*(
 paddleA = {
 	width: 1,
 	height: 3,
-	marginMin: 0.75,
-	marginMax: 5,
+	marginMin: 0+0.75,
+	marginMax: 0+5,
+	rotationSign: 1,
 	rotationDamp: 0.1,
-	position: [ 1.5, viewHeight/2 ],
+	position: [ 0+1.5, viewHeight/2 ],
 	goal: { rigidBody: undefined, constraintA: undefined, constraintA: undefined },
 	material: physDevice.createMaterial({
 		elasticity : 1,
@@ -140,7 +141,7 @@ paddleA.move = function( x, y ) {
 	var distance = Math.pow( Math.pow(movement[0], 2 ) + Math.pow(movement[1], 2 ), 0.5 );
 	var angle = Math.atan2( movement[1], movement[0] );
 
-	var rotation = paddleA.rigidBody.getRotation() + (angle-paddleA.rigidBody.getRotation())*paddleA.rotationDamp * distance
+	var rotation = paddleA.rigidBody.getRotation() + (angle-paddleA.rigidBody.getRotation())*paddleA.rotationDamp * distance * paddleA.rotationSign
 	paddleA.rigidBody.setRotation(rotation);
 	
 };
@@ -172,6 +173,84 @@ world.addConstraint(paddleA.goal.constraintB);
 })();
 
 // Create paddleB.
+(function() {
+	
+paddleB = {
+	width: 1,
+	height: 3,
+	marginMin: 20-5,
+	marginMax: 20-0.75,
+	rotationSign: -1,
+	rotationDamp: 0.1,
+	position: [ 20-1.5, viewHeight/2 ],
+	goal: { rigidBody: undefined, constraintA: undefined, constraintA: undefined },
+	material: physDevice.createMaterial({
+		elasticity : 1,
+		staticFriction: 0,
+	})
+};
+paddleB.shape = physDevice.createPolygonShape({
+	vertices: physDevice.createBoxVertices(paddleB.width, paddleB.height),
+	material: paddleB.material
+});
+paddleB.rigidBody = physDevice.createRigidBody({
+	type: 'dynamic',
+	shapes: [
+		paddleB.shape
+	],
+	position: paddleB.position
+});
+world.addRigidBody(paddleB.rigidBody);
+
+
+paddleB.goal.rigidBody = physDevice.createRigidBody({
+    type: 'kinematic',
+    position: [5, 5],
+});
+world.addRigidBody(paddleB.goal.rigidBody);
+	
+paddleB.move = function( x, y ) {
+	
+	var oldPosition = paddleB.goal.rigidBody.getPosition();
+	var newPosition = draw2D.viewportMap(x, y);
+
+	newPosition[0] = newPosition[0] < paddleB.marginMin ? paddleB.marginMin : newPosition[0] > paddleB.marginMax ? paddleB.marginMax : newPosition[0];
+	paddleB.goal.rigidBody.setPosition(newPosition);
+	
+	var movement = [ newPosition[0]-oldPosition[0], newPosition[1]-oldPosition[1] ];
+	var distance = Math.pow( Math.pow(movement[0], 2 ) + Math.pow(movement[1], 2 ), 0.5 );
+	var angle = Math.atan2( movement[1], movement[0] );
+
+	var rotation = paddleB.rigidBody.getRotation() + (angle-paddleB.rigidBody.getRotation())*paddleB.rotationDamp * distance * paddleB.rotationSign
+	paddleB.rigidBody.setRotation(rotation);
+	
+};
+inputDevice.addEventListener('mouseover', function( x, y ) {
+	paddleB.move( x, y );
+});
+
+paddleB.goal.constraintA = physDevice.createPointConstraint({
+	bodyA: paddleB.goal.rigidBody,
+	bodyB: paddleB.rigidBody,
+    anchorA : [0, 1],
+    anchorB : [0, 1],
+	stiff: false,
+	maxForce: 1e5
+});
+world.addConstraint(paddleB.goal.constraintA);
+
+paddleB.goal.constraintB = physDevice.createPointConstraint({
+	bodyA: paddleB.goal.rigidBody,
+	bodyB: paddleB.rigidBody,
+    anchorA : [0, -1],
+    anchorB : [0, -1],
+	stiff: false,
+	maxForce: 1e5
+});
+world.addConstraint(paddleB.goal.constraintB);
+
+
+})();
 
 
 // Walls.
