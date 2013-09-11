@@ -97,6 +97,8 @@ world.addRigidBody(ball.rigidBody);
 
 ball.spawn = function( side ) {
 	ball.rigidBody.setPosition([viewWidth/2, viewHeight/2]);
+	ball.rigidBody.setLinearDrag(0);
+	ball.rigidBody.setAngularDrag(0);
 	ball.rigidBody.setVelocity([0,0]);
 	ball.rigidBody.setAngularVelocity(0);
 	if ( side !== undefined && side != 0 ) {
@@ -124,14 +126,14 @@ ball.shape.addEventListener('preSolve', ball.randomizedReflection);
 ball.dynamicDrag = function() {
 	
 	var velocity = ball.rigidBody.getVelocity();
-	
 	var velocityMagnitude = Math.pow( Math.pow(velocity[0],2)+Math.pow(velocity[1],2), 0.5 );
 
 	if ( ball.speedMin && velocityMagnitude <= ball.speedMin ) {
 		ball.rigidBody.setLinearDrag(0.9);
 		ball.rigidBody.setAngularDrag(0.9);
 		if ( velocityMagnitude <= 0.1 ) {
-			ball.rigidBody.setVelocity([0,0]);
+			//ball.rigidBody.setVelocity([0,0]);
+			ball.spawn();
 		}
 	} else if ( ball.speedMax && velocityMagnitude >= ball.speedMax ) {
 		var drag = Math.log(velocityMagnitude*velocityMagnitude)/10;
@@ -400,9 +402,9 @@ inputDevice.addEventListener('mouseover', function( x, y ) {
 });
 })();
 
-// Paddle goals.
+// Goaling and stalling.
 (function() {
-paddleGoal = function() {
+goaling = function() {
 	
 	var position = ball.rigidBody.getPosition();
 	
@@ -542,10 +544,11 @@ function tick() {
 	// Update physics.
 	world.step(1 / 60);
 	
-	// Paddle goals.
-	paddleGoal();
-	
+	// Ball dynamics.
 	ball.dynamicDrag();
+	
+	// Paddle goals.
+	goaling();
 	
 }
 
