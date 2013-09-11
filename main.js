@@ -92,7 +92,16 @@ ball.rigidBody = physDevice.createRigidBody({
 	bullet: true,
 });
 world.addRigidBody(ball.rigidBody);
-ball.rigidBody.applyImpulse([ ball.mass*10*((Math.random()*2)-1), ball.mass*10*((Math.random()*2)-1) ]);
+
+ball.spawn = function( side ) {
+	ball.rigidBody.setPosition([viewWidth/2, viewHeight/2]);
+	ball.rigidBody.setVelocity([0,0]);
+	ball.rigidBody.setAngularVelocity(0);
+	if ( side !== undefined && side != 0 ) {
+		ball.rigidBody.applyImpulse([ ball.mass*10*0.5*side, ball.mass*10*0 ]);
+	}
+};
+ball.spawn(1);
 
 })();
 
@@ -100,6 +109,8 @@ ball.rigidBody.applyImpulse([ ball.mass*10*((Math.random()*2)-1), ball.mass*10*(
 (function() {
 	
 paddleA = {
+	health: 6,
+	damage: 0,
 	width: 1,
 	height: 3,
 	marginMin: 0+0.75,
@@ -109,7 +120,7 @@ paddleA = {
 	position: [ 0+1.5, viewHeight/2 ],
 	goal: { rigidBody: undefined, constraintA: undefined, constraintA: undefined },
 	material: physDevice.createMaterial({
-		elasticity : 1,
+		elasticity : 100,
 		staticFriction: 0,
 	})
 };
@@ -125,7 +136,6 @@ paddleA.rigidBody = physDevice.createRigidBody({
 	position: paddleA.position
 });
 world.addRigidBody(paddleA.rigidBody);
-
 
 paddleA.goal.rigidBody = physDevice.createRigidBody({
     type: 'kinematic',
@@ -173,6 +183,33 @@ paddleA.goal.constraintB = physDevice.createPointConstraint({
 });
 world.addConstraint(paddleA.goal.constraintB);
 
+paddleA.addDamage = function() {
+	
+	paddleA.damage++;
+	
+	if ( paddleA.damage >= paddleA.health ) {
+		return false;
+	} else {
+		
+		var healthRatio = 1 - paddleA.damage/paddleA.health;
+		
+		//paddleA.rigidBody.shapes[0].scale( 1, healthRatio );
+		paddleA.rigidBody.removeShape(paddleA.shape);
+		paddleA.shape = physDevice.createPolygonShape({
+			vertices: physDevice.createBoxVertices( paddleA.width, paddleA.height*healthRatio ),
+			material: paddleA.material
+		});
+		paddleA.rigidBody.addShape(paddleA.shape);
+		
+		paddleA.goal.constraintA.setAnchorA([0, 1*healthRatio]);
+		paddleA.goal.constraintA.setAnchorB([0, 1*healthRatio]);
+		paddleA.goal.constraintB.setAnchorA([0, -1*healthRatio]);
+		paddleA.goal.constraintB.setAnchorB([0, -1*healthRatio]);
+		
+		return true;
+		
+	}
+};
 
 })();
 
@@ -180,13 +217,15 @@ world.addConstraint(paddleA.goal.constraintB);
 (function() {
 	
 paddleB = {
+	health: 6,
+	damage: 0,
 	width: 1,
 	height: 3,
-	marginMin: 20-5,
-	marginMax: 20-0.75,
+	marginMin: viewWidth-5,
+	marginMax: viewWidth-0.75,
 	rotationSign: -1,
 	rotationDamp: 0.1,
-	position: [ 20-1.5, viewHeight/2 ],
+	position: [ viewWidth-1.5, viewHeight/2 ],
 	goal: { rigidBody: undefined, constraintA: undefined, constraintA: undefined },
 	material: physDevice.createMaterial({
 		elasticity : 1,
@@ -253,16 +292,44 @@ paddleB.goal.constraintB = physDevice.createPointConstraint({
 });
 world.addConstraint(paddleB.goal.constraintB);
 
+paddleB.addDamage = function() {
+	
+	paddleB.damage++;
+	
+	if ( paddleB.damage >= paddleB.health ) {
+		return false;
+	} else {
+		
+		var healthRatio = 1 - paddleB.damage/paddleB.health;
+		
+		//paddleB.rigidBody.shapes[0].scale( 1, healthRatio );
+		paddleB.rigidBody.removeShape(paddleB.shape);
+		paddleB.shape = physDevice.createPolygonShape({
+			vertices: physDevice.createBoxVertices( paddleB.width, paddleB.height*healthRatio ),
+			material: paddleB.material
+		});
+		paddleB.rigidBody.addShape(paddleB.shape);
+		
+		paddleB.goal.constraintA.setAnchorA([0, 1*healthRatio]);
+		paddleB.goal.constraintA.setAnchorB([0, 1*healthRatio]);
+		paddleB.goal.constraintB.setAnchorA([0, -1*healthRatio]);
+		paddleB.goal.constraintB.setAnchorB([0, -1*healthRatio]);
+		
+		return true;
+		
+	}
+};
+
 })();
 
 // Paddle controls.
 (function() {
-var paddleControl = function ( x, y ) {
+paddleControl = function ( x, y ) {
 	var position = draw2D.viewportMap(x, y);
-	if ( position[0] <= 7 ) {
+	if ( position[0] <= 0+7 ) {
 		paddleA.move( x, y );
 	}
-	if ( position[0] >= 20-7 ) {
+	if ( position[0] >= viewWidth-7 ) {
 		paddleB.move( x, y );
 	}
 };
@@ -287,6 +354,30 @@ inputDevice.addEventListener('mouseover', function( x, y ) {
 });
 })();
 
+// Paddle goals.
+(function() {
+paddleGoal = function() {
+	
+	var position = ball.rigidBody.getPosition();
+	
+	if ( position[0] <= 0-1 ) {
+		if ( paddleA.addDamage() ) {
+			ball.spawn(-1);
+		} else {
+			ball.spawn();
+			
+		}
+	} else if ( position[0] >= viewWidth+1 ) {
+		if ( paddleB.addDamage() ) {
+			ball.spawn(1);
+		} else {
+			ball.spawn();
+		}
+	}
+	
+};
+})();
+	
 // Walls.
 (function() {
 
@@ -335,7 +426,7 @@ wallB.rigidBody = physDevice.createRigidBody({
 });
 world.addRigidBody(wallB.rigidBody);
 })();
-
+/*
 (function() {
 wallC = {
 	width: 1,
@@ -381,7 +472,7 @@ wallD.rigidBody = physDevice.createRigidBody({
 });
 world.addRigidBody(wallD.rigidBody);
 })();
-
+*/
 })();
 
 
@@ -401,7 +492,13 @@ TurbulenzEngine.setInterval(update, 1000 / 60);
 
 // The tick function.
 function tick() {
+	
+	// Update physics.
 	world.step(1 / 60);
+	
+	// Paddle goals.
+	paddleGoal();
+	
 }
 
 
