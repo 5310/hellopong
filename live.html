@@ -1,0 +1,49 @@
+<html>
+	
+<head>
+	
+    <style>
+	body {
+	    background: black;
+	}
+
+	#canvas {
+	    position: absolute;
+	    left: 0; right: 0; top: 0; bottom: 0;
+	    margin: auto;
+	}
+    </style>
+    
+    <script src="jslib/debug.js"></script>
+    <script src="jslib/webgl/turbulenzengine.js"></script>
+    
+    <script src="jslib/webgl/inputdevice.js"></script>
+    
+    <script src="jslib/webgl/graphicsdevice.js"></script>
+    <script src="jslib/draw2d.js"></script>
+    
+    <script src="jslib/physics2ddevice.js"></script>
+    <script src="jslib/boxtree.js"></script>
+    <script src="jslib/physics2ddebugdraw.js"></script>
+	
+</head>
+
+<body>
+	
+    <canvas id="canvas" width="800px" height="480px"/>
+	
+    <script>
+    TurbulenzEngine = WebGLTurbulenzEngine.create({
+	canvas: document.getElementById("canvas")
+    });
+    </script>
+    
+    <script src="main.js"></script>
+    
+    <script>
+	TurbulenzEngine.onload();
+    </script>
+    
+</body>
+
+</html>
