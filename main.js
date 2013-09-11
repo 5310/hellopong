@@ -30,15 +30,15 @@ draw2D.configure({
 inputDevice = TurbulenzEngine.createInputDevice();
 
 inputDevice.addEventListener('mousedown', function( mouseCode, x, y ) {
-	console.log("mousedown "+x+" "+y);
+	//console.log("mousedown "+x+" "+y);
 });
 
 inputDevice.addEventListener('mouseover', function( x, y ) {
-	console.log("mouseover "+x+" "+y);
+	//console.log("mouseover "+x+" "+y);
 });
 
 inputDevice.addEventListener('touchmove', function(touchEvent) {
-    console.log("touchmove");
+    //console.log("touchmove");
 });
 
 })();
@@ -68,6 +68,8 @@ world = physDevice.createWorld({
 (function() {
 	
 ball = {
+	speedMin: 2,
+	speedMax: 5,
 	width: 1,
 	height: 1,
 	mass: 1,
@@ -103,6 +105,46 @@ ball.spawn = function( side ) {
 };
 ball.spawn(1);
 
+ball.randomizedReflection = function(arbiter) {
+
+	var normal = arbiter.getNormal();
+	var normalAngle = Math.atan2(normal[1], normal[0]);
+
+	var strength = ball.mass*2;
+	var maxDeviation = Math.PI*0.1;
+
+	var deviationAngle = -1*normalAngle + 2*(Math.random()-0.5)*maxDeviation;
+	var deviation = [ Math.cos(deviationAngle)*strength, Math.sin(deviationAngle)*strength ]
+
+	arbiter.bodyA.applyImpulse(deviation);
+
+}
+ball.shape.addEventListener('preSolve', ball.randomizedReflection);
+
+ball.dynamicDrag = function() {
+	
+	var velocity = ball.rigidBody.getVelocity();
+	
+	var velocityMagnitude = Math.pow( Math.pow(velocity[0],2)+Math.pow(velocity[1],2), 0.5 );
+
+	if ( ball.speedMin && velocityMagnitude <= ball.speedMin ) {
+		ball.rigidBody.setLinearDrag(0.9);
+		ball.rigidBody.setAngularDrag(0.9);
+		if ( velocityMagnitude <= 0.1 ) {
+			ball.rigidBody.setVelocity([0,0]);
+		}
+	} else if ( ball.speedMax && velocityMagnitude >= ball.speedMax ) {
+		var drag = Math.log(velocityMagnitude*velocityMagnitude)/10;
+		ball.rigidBody.setLinearDrag(drag);
+		ball.rigidBody.setAngularDrag(drag);
+	} else {
+		ball.rigidBody.setLinearDrag(0);
+		ball.rigidBody.setAngularDrag(0);
+		ball.rigidBody.setVelocity([ velocity[0]*1.2, velocity[1]*1.2]);
+	}
+	
+}
+
 })();
 
 // Create paddleA.
@@ -111,16 +153,17 @@ ball.spawn(1);
 paddleA = {
 	health: 6,
 	damage: 0,
-	width: 1,
+	width: 0.5,
 	height: 3,
 	marginMin: 0+0.75,
 	marginMax: 0+5,
 	rotationSign: 1,
 	rotationDamp: 0.1,
 	position: [ 0+1.5, viewHeight/2 ],
+	mass: 0.5,
 	goal: { rigidBody: undefined, constraintA: undefined, constraintA: undefined },
 	material: physDevice.createMaterial({
-		elasticity : 100,
+		elasticity : 1000,
 		staticFriction: 0,
 	})
 };
@@ -133,6 +176,7 @@ paddleA.rigidBody = physDevice.createRigidBody({
 	shapes: [
 		paddleA.shape
 	],
+    mass: paddleA.mass,
 	position: paddleA.position
 });
 world.addRigidBody(paddleA.rigidBody);
@@ -219,13 +263,14 @@ paddleA.addDamage = function() {
 paddleB = {
 	health: 6,
 	damage: 0,
-	width: 1,
+	width: 0.5,
 	height: 3,
 	marginMin: viewWidth-5,
 	marginMax: viewWidth-0.75,
 	rotationSign: -1,
 	rotationDamp: 0.1,
 	position: [ viewWidth-1.5, viewHeight/2 ],
+	mass: 0.5,
 	goal: { rigidBody: undefined, constraintA: undefined, constraintA: undefined },
 	material: physDevice.createMaterial({
 		elasticity : 1,
@@ -241,6 +286,7 @@ paddleB.rigidBody = physDevice.createRigidBody({
 	shapes: [
 		paddleB.shape
 	],
+    mass: paddleB.mass,
 	position: paddleB.position
 });
 world.addRigidBody(paddleB.rigidBody);
@@ -498,6 +544,8 @@ function tick() {
 	
 	// Paddle goals.
 	paddleGoal();
+	
+	ball.dynamicDrag();
 	
 }
 
