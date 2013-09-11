@@ -1,11 +1,11 @@
-// Initialize Turbulenz engine.
-(function() {
+/*{{ javascript("jslib/webgl/inputdevice.js") }}*/
+/*{{ javascript("jslib/webgl/graphicsdevice.js") }}*/
+/*{{ javascript("jslib/draw2d.js") }}*/
+/*{{ javascript("jslib/physics2ddevice.js") }}*/
+/*{{ javascript("jslib/boxtree.js") }}*/
+/*{{ javascript("jslib/physics2ddebugdraw.js") }}*/
 
-TurbulenzEngine = WebGLTurbulenzEngine.create({
-    canvas: document.getElementById("canvas")
-});
-
-})();
+TurbulenzEngine.onload = function onloadFn() {
 
 // Initialize scale, graphics, and 2d drawing devices.
 (function() {
@@ -601,3 +601,6 @@ function pan( arguments ) {
 	physDebug.setPhysics2DViewport(draw2D.getViewport());
 	
 }
+
+  
+};

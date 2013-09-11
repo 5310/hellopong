@@ -2,13 +2,13 @@
 ## Custom
 #################
 
-hellopong.*
-manifest.yaml
+*.lnk
 
-local/*
+manifest.yaml
+build/*
+
 .goutputstream-*
 .thumb
-server.bat
 
 #################
 ## Eclipse
