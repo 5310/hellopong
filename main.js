@@ -133,7 +133,7 @@ ball.dynamicDrag = function() {
 		ball.rigidBody.setAngularDrag(0.9);
 		if ( velocityMagnitude <= 0.1 ) {
 			//ball.rigidBody.setVelocity([0,0]);
-			ball.spawn();
+			ball.spawn( Math.random() > 0.5 ? 1 : -1 );
 		}
 	} else if ( ball.speedMax && velocityMagnitude >= ball.speedMax ) {
 		var drag = Math.log(velocityMagnitude*velocityMagnitude)/10;
