@@ -1,7 +1,13 @@
 <html>
 	
 <head>
-	
+    
+    <title>Hello Pong!</title>
+    
+    <meta charset="utf-8">
+    <meta name="description" content="A very basic Pong-clone built using the Turbulenz engine as a learning experience. And what an experience it has been...">.
+    <meta name="copyright" content="CC-BY: Creative Commons Attribution License">
+    
     <style>
 	body {
 	    background: black;
@@ -33,9 +39,9 @@
     <canvas id="canvas" width="800px" height="480px"/>
 	
     <script>
-    TurbulenzEngine = WebGLTurbulenzEngine.create({
-	canvas: document.getElementById("canvas")
-    });
+	TurbulenzEngine = WebGLTurbulenzEngine.create({
+	    canvas: document.getElementById("canvas")
+	});
     </script>
     
     <script src="main.js"></script>
