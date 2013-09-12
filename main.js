@@ -1,11 +1,11 @@
-/*{{ javascript("jslib/webgl/inputdevice.js") }}*/
 /*{{ javascript("jslib/webgl/graphicsdevice.js") }}*/
 /*{{ javascript("jslib/draw2d.js") }}*/
+/*{{ javascript("jslib/webgl/inputdevice.js") }}*/
 /*{{ javascript("jslib/physics2ddevice.js") }}*/
 /*{{ javascript("jslib/boxtree.js") }}*/
 /*{{ javascript("jslib/physics2ddebugdraw.js") }}*/
 
-	TurbulenzEngine.onload = function onloadFn() {
+TurbulenzEngine.onload = function() {
 
 	// Initialize scale, graphics, and 2d drawing devices.
 	(function() {
@@ -26,8 +26,8 @@
 
 	// Input device.
 	(function() {
-
-		inputDevice = TurbulenzEngine.createInputDevice();
+		var inputDeviceOptions = { };
+		inputDevice = TurbulenzEngine.createInputDevice(inputDeviceOptions);
 
 		/*inputDevice.addEventListener('mousedown', function( mouseCode, x, y ) {
 			console.log("mousedown "+x+" "+y);
@@ -63,6 +63,8 @@
 		});
 
 	})();
+
+
 
 	// Create ball.
 	(function() {
@@ -131,7 +133,7 @@
 			if ( ball.speedMin && velocityMagnitude <= ball.speedMin ) {
 				ball.rigidBody.setLinearDrag(0.9);
 				ball.rigidBody.setAngularDrag(0.9);
-				if ( velocityMagnitude <= 0.1 ) {
+				if ( velocityMagnitude <= 0.1 && velocityMagnitude != 0 ) {
 					//ball.rigidBody.setVelocity([0,0]);
 					ball.spawn( Math.random() > 0.5 ? 1 : -1 );
 				}
@@ -148,6 +150,8 @@
 		}
 
 	})();
+
+
 
 	// Create paddleA.
 	(function() {
@@ -373,22 +377,33 @@
 	// Paddle controls.
 	(function() {
 		
-		paddleControl = function ( x, y ) {
+		paddleControl = function ( x, y, offset ) {
+			
 			var position = draw2D.viewportMap(x, y);
+			
+			var offset = offset ? ( offset === true ? 0.5 : offset ) : 0;
+			var offsetUnmap = draw2D.viewportUnmap(offset, 0);
+			offset = offsetUnmap[0];
+			
 			if ( position[0] <= 0+7 ) {
-				paddleA.move( x, y );
+				paddleA.move( x+(offset), y );
 			}
 			if ( position[0] >= viewWidth-7 ) {
-				paddleB.move( x, y );
+				paddleB.move( x+(-1*offset), y );
 			}
+			
 		};
+		
+		inputDevice.addEventListener('mouseover', function( x, y ) {
+			paddleControl( x, y );
+		});
 		
 		inputDevice.addEventListener('touchmove', function(touchEvent) {
 			var touches = touchEvent.gameTouches;
 			for ( var i = 0; i < touches.length; i++ ) {
 				var x = touches[i].positionX;
 				var y = touches[i].positionY;
-				paddleControl( x, y );
+				paddleControl( x, y, true );
 			}
 		});
 		
@@ -397,12 +412,8 @@
 			for ( var i = 0; i < touches.length; i++ ) {
 				var x = touches[i].positionX;
 				var y = touches[i].positionY;
-				paddleControl( x, y );
+				paddleControl( x, y, true );
 			}
-		});
-		
-		inputDevice.addEventListener('mouseover', function( x, y ) {
-			paddleControl( x, y );
 		});
 		
 	})();
@@ -432,6 +443,8 @@
 		};
 	
 	})();
+	
+	
 		
 	// Walls.
 		(function() {
