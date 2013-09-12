@@ -2,13 +2,14 @@
 ## Custom
 #################
 
-*.lnk
+hellopong*
 
 manifest.yaml
 build/*
 
 .goutputstream-*
 .thumb
+*.lnk
 
 #################
 ## Eclipse

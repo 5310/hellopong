@@ -162,7 +162,7 @@ TurbulenzEngine.onload = function() {
 			width: 0.5,
 			height: 3,
 			marginMin: 0+0.75,
-			marginMax: 0+5,
+			marginMax: 0+5.5,
 			rotationSign: 1,
 			rotationDamp: 0.1,
 			position: [ 0+1.5, viewHeight/2 ],
@@ -271,7 +271,7 @@ TurbulenzEngine.onload = function() {
 			damage: 0,
 			width: 0.5,
 			height: 3,
-			marginMin: viewWidth-5,
+			marginMin: viewWidth-5.5,
 			marginMax: viewWidth-0.75,
 			rotationSign: -1,
 			rotationDamp: 0.1,
@@ -403,7 +403,7 @@ TurbulenzEngine.onload = function() {
 			for ( var i = 0; i < touches.length; i++ ) {
 				var x = touches[i].positionX;
 				var y = touches[i].positionY;
-				paddleControl( x, y, true );
+				paddleControl( x, y, 1 );
 			}
 		});
 		
@@ -412,7 +412,7 @@ TurbulenzEngine.onload = function() {
 			for ( var i = 0; i < touches.length; i++ ) {
 				var x = touches[i].positionX;
 				var y = touches[i].positionY;
-				paddleControl( x, y, true );
+				paddleControl( x, y, 1 );
 			}
 		});
 		
