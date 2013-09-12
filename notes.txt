@@ -1,0 +1,92 @@
+# Building with Turbulenz
+
+- Canvas-debug mode. For most of development in the browser. Needs to be rerun with changes.  
+	makehtml --mode canvas-debug -t . -o .\build\hellopong.canvas-debug.html main.js template.html
+
+- Canvas release build js and page. Only the first line needs to be reran with changes.  
+	maketzjs --mode canvas -t . -o .\build\hellopong.js main.js
+	makehtml --mode canvas -t . -o .\build\hellopong.canvas.html --code .\build\hellopong.js main.js template.html
+
+- Plugin-mode release build tzjs and page. Only the first line needs to be reran with changes.
+	maketzjs --mode plugin -t . -o .\build\hellopong.tzjs main.js
+	makehtml --mode plugin -t . -o .\build\hellopong.plugin.html --code .\build\hellopong.tzjs main.js template.html
+
+
+# Gameplay
+
+- It's Pong.
+- Players will control a paddle each.
+- A single ball will bound around the field.
+- Lengths of the field are walled off, but the two widths are open.
+- Players must keep the ball within the field, failure to do so will mean losing a goal.
+- Each lost goal will shrink the losing player's paddle a bit.
+- The ball is respawned after each lost goal.
+- Until one player loses their paddle, and the game is won by the other player.
+
+
+# Interface and States
+
+The new interafce is much simpler, and frankly, doesn't need to be any more complicated; this is a learning game, not a polishing game.
+
+When the game is started, it starts at state 0. Follow the list to know more.
+
+- State 0
+	- Empty field, and nothing else.
+	- Touching either paddle-area will create a paddle.
+		- Paddles spawn in like anything else, growing in size.
+		-	Paddles cannot be controlled yet.
+	- If both paddles are spawned, transition to state 1.
+- State 1
+	- Ball is spawned.
+		- It is spawned at the center, as usual, and the grown to normal size.
+		- The ball is short in a random side.
+	- Both paddles can now be controlled now.
+	- When ball finishes spawning, transition to State 2.
+- State 2
+	- Normal game state.
+	- Both paddles can continue to be controlled.
+	- If ball stalls somewhere inside the field, randomly shoot in a new direction.
+	- If ball gows out of field, score a goal.
+	- Random obstacle-routines start every given period.
+	- When goal is scored, go to State 3.
+- State 3
+	- Scoring pause.
+	- Paddles cannot be controlled again.
+	- The side losing the ball is shrunk over time.
+		- Only if one side has lost the game, transition to State 4, else continue.
+	- After paddle shrinks any remaining obstacles are shrunk and rushed out of the field to the winning side.
+	- When obstacles are cleared transition to State 1.
+- State 4
+	- Final score pause.
+	- Paddles cannot be controlled again.
+	- The remaining paddle shrinks fully out of existence.
+	- Fanfare fireworks blast for the number of hitpoints remaining for winner.
+	- When fanfare is finished fading out transition to State 0.
+
+
+# Visual Features
+- The field is always rendered.
+	- Preferably, it should be vector.
+- Every solid object is white.
+- Every particle is yellow.
+- Use background clearing alpha after testing.
+- If paddles or balls cannot be moved, color them yellow.
+	- This means while spawning, the ball will be yellow.
+	- And for the paddles it is during scoring winning as well as spawning.
+- Ball creates particles as it moves.
+	- Particles are squares of various size.
+	- The faster it is going, the more particles, or something.
+	- May only spawn particles above a speed limit.
+- Ball, upon colliding with anything, shakes the screen.
+	- The faster it is going, the larger the shake.
+	- The shake should be on the normal of the collision.
+	- May only shake above a speed limit.
+- Ball, upon colliding with anything, creates particles.
+	- Particles are thin lines of various size/thickness, never square.
+	- Particles are ejected with some impulse that is based on the collision angle.
+	- The faster it is going, the larger the impulse and number of particles.
+	- May only spawn particles above a speed limit.
+- Particles are physical, but interact with nothing.
+	- Not even themselves.
+- Obstacles are physical, and only interact with the ball.
+	- Not even themselves, and definitely not the walls and paddles.

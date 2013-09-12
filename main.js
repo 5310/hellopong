@@ -183,6 +183,7 @@ TurbulenzEngine.onload = function() {
 				paddleA.shape
 			],
 			mass: paddleA.mass,
+			bullet: true,
 			position: paddleA.position
 		});
 		world.addRigidBody(paddleA.rigidBody);
@@ -293,6 +294,7 @@ TurbulenzEngine.onload = function() {
 				paddleB.shape
 			],
 			mass: paddleB.mass,
+			bullet: true,
 			position: paddleB.position
 		});
 		world.addRigidBody(paddleB.rigidBody);
@@ -453,7 +455,7 @@ TurbulenzEngine.onload = function() {
 			wallA = {
 				width: 21,
 				height: 1,
-				position: [ viewWidth/2, 0 ],
+				position: [ viewWidth/2, 0-0.25 ],
 				material: physDevice.createMaterial({
 					elasticity : 1
 				})
@@ -476,7 +478,7 @@ TurbulenzEngine.onload = function() {
 			wallB = {
 				width: 21,
 				height: 1,
-				position: [ viewWidth/2, viewHeight ],
+				position: [ viewWidth/2, viewHeight+0.25 ],
 				material: physDevice.createMaterial({
 					elasticity : 1
 				})
