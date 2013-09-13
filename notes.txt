@@ -33,13 +33,13 @@ When the game is started, it starts at state 0. Follow the list to know more.
 - State 0
 	- Empty field, and nothing else.
 	- Touching either paddle-area will create a paddle.
-		- Paddles spawn in like anything else, growing in size.
-		-	Paddles cannot be controlled yet.
+		- Paddle zoom into field.
+		- Paddles cannot be controlled yet.
 	- If both paddles are spawned, transition to state 1.
 - State 1
 	- Ball is spawned.
 		- It is spawned at the center, as usual, and the grown to normal size.
-		- The ball is short in a random side.
+		- The ball is shot in a random side.
 	- Both paddles can now be controlled now.
 	- When ball finishes spawning, transition to State 2.
 - State 2
@@ -47,7 +47,7 @@ When the game is started, it starts at state 0. Follow the list to know more.
 	- Both paddles can continue to be controlled.
 	- If ball stalls somewhere inside the field, randomly shoot in a new direction.
 	- If ball gows out of field, score a goal.
-	- Random obstacle-routines start every given period.
+	- Random obstacle-routines start every given period?
 	- When goal is scored, go to State 3.
 - State 3
 	- Scoring pause.

@@ -7,11 +7,11 @@
 
 TurbulenzEngine.onload = function() {
 
+	viewWidth = 20;
+	viewHeight = 12;
+
 	// Initialize scale, graphics, and 2d drawing devices.
 	(function() {
-
-		viewWidth = 20;
-		viewHeight = 12;
 
 		graphicsDevice = TurbulenzEngine.createGraphicsDevice({});
 		draw2D = Draw2D.create({
@@ -54,6 +54,8 @@ TurbulenzEngine.onload = function() {
 
 	})();
 
+	state = 0;
+
 
 	// Create physics world.
 	(function() {
@@ -65,23 +67,25 @@ TurbulenzEngine.onload = function() {
 	})();
 
 
-
 	// Create ball.
 	(function() {
 		
 		ball = {
+			spawned: false,
+			spawntimer: 0,
+			radius: 0.25,
 			speedMin: 2,
 			speedMax: 5,
 			width: 1,
 			height: 1,
 			mass: 1,
-			position: [ viewWidth/2, viewHeight/2],
+			position: [ viewWidth/2, -5], //[ viewWidth/2, viewHeight/2],
 			material: physDevice.createMaterial({
 				elasticity : 1
 			})
 		};
 		ball.shape = physDevice.createCircleShape({
-			radius : 0.25,
+			radius : 0.001,
 			origin : [0, 0],
 			material: ball.material
 		});
@@ -97,17 +101,44 @@ TurbulenzEngine.onload = function() {
 		});
 		world.addRigidBody(ball.rigidBody);
 
-		ball.spawn = function( side ) {
-			ball.rigidBody.setPosition([viewWidth/2, viewHeight/2]);
-			ball.rigidBody.setLinearDrag(0);
-			ball.rigidBody.setAngularDrag(0);
-			ball.rigidBody.setVelocity([0,0]);
-			ball.rigidBody.setAngularVelocity(0);
-			if ( side !== undefined && side != 0 ) {
-				ball.rigidBody.applyImpulse([ ball.mass*10*0.5*side, ball.mass*10*0 ]);
+		ball.spawn = function(side) {
+			if ( ball.spawned ) {
+				ball.shape.setRadius(0.001);
+				ball.spawned = false;
+				ball.spawntimer = 0;
+			}
+			var position = ball.rigidBody.getPosition();
+			if ( ball.spawntimer <= 0 ) {
+				ball.spawntimer = 0.01;
+				ball.rigidBody.setPosition([viewWidth/2, viewHeight/2]);
+				ball.rigidBody.setRotation(0);
+				ball.rigidBody.setLinearDrag(0);
+				ball.rigidBody.setAngularDrag(0);
+				ball.rigidBody.setVelocity([0,0]);
+				ball.rigidBody.setAngularVelocity(0);
+			} else {
+				ball.shape.setRadius(ball.radius*ball.spawntimer);
+				ball.spawntimer += 0.01;
+				if ( ball.spawntimer >= 1 ) {
+					ball.shape.setRadius(ball.radius);
+					ball.spawned = true;
+					ball.shoot();
+					state = 2;
+				}
 			}
 		};
-		ball.spawn(1);
+		
+		ball.shoot = function(side) {
+			
+			var impulse = 10;
+			var angle = 0;
+			
+			angle = Math.random()*Math.PI*2;
+			
+			var mass = ball.rigidBody.getMass();
+			ball.rigidBody.applyImpulse([ mass*impulse*Math.cos(angle), mass*impulse*Math.sin(angle) ]);
+			
+		}
 
 		ball.randomizedReflection = function(arbiter) {
 
@@ -133,9 +164,9 @@ TurbulenzEngine.onload = function() {
 			if ( ball.speedMin && velocityMagnitude <= ball.speedMin ) {
 				ball.rigidBody.setLinearDrag(0.9);
 				ball.rigidBody.setAngularDrag(0.9);
-				if ( velocityMagnitude <= 0.1 && velocityMagnitude != 0 ) {
-					//ball.rigidBody.setVelocity([0,0]);
-					ball.spawn( Math.random() > 0.5 ? 1 : -1 );
+				if ( state == 2 && velocityMagnitude <= 0.1 && velocityMagnitude != 0 ) {
+					console.log(123);
+					ball.shoot();
 				}
 			} else if ( ball.speedMax && velocityMagnitude >= ball.speedMax ) {
 				var drag = Math.log(velocityMagnitude*velocityMagnitude)/10;
@@ -152,12 +183,12 @@ TurbulenzEngine.onload = function() {
 	})();
 
 
-
 	// Create paddleA.
 	(function() {
 		
 		paddleA = {
-			health: 6,
+			spawned: false,
+			health: 3,
 			damage: 0,
 			width: 0.5,
 			height: 3,
@@ -165,8 +196,8 @@ TurbulenzEngine.onload = function() {
 			marginMax: 0+5.5,
 			rotationSign: 1,
 			rotationDamp: 0.1,
-			position: [ 0+1.5, viewHeight/2 ],
-			mass: 0.5,
+			position: [ 0-1, viewHeight/2 ], //[ 0+1.5, viewHeight/2 ],
+			mass: 1,
 			goal: { rigidBody: undefined, constraintA: undefined, constraintA: undefined },
 			material: physDevice.createMaterial({
 				elasticity : 1000,
@@ -234,9 +265,11 @@ TurbulenzEngine.onload = function() {
 		});
 		world.addConstraint(paddleA.goal.constraintB);
 
-		paddleA.addDamage = function() {
+		paddleA.addDamage = function( value ) {
 			
-			paddleA.damage++;
+			var value = value === undefined ? 1 : value;
+			
+			paddleA.damage += value;
 			
 			if ( paddleA.damage >= paddleA.health ) {
 				return false;
@@ -268,7 +301,8 @@ TurbulenzEngine.onload = function() {
 	(function() {
 		
 		paddleB = {
-			health: 6,
+			spawned: false,
+			health: 3,
 			damage: 0,
 			width: 0.5,
 			height: 3,
@@ -276,8 +310,8 @@ TurbulenzEngine.onload = function() {
 			marginMax: viewWidth-0.75,
 			rotationSign: -1,
 			rotationDamp: 0.1,
-			position: [ viewWidth-1.5, viewHeight/2 ],
-			mass: 0.5,
+			position: [ viewWidth+1, viewHeight/2 ], //[ viewWidth-1.5, viewHeight/2 ],
+			mass: 1,
 			goal: { rigidBody: undefined, constraintA: undefined, constraintA: undefined },
 			material: physDevice.createMaterial({
 				elasticity : 1,
@@ -346,9 +380,11 @@ TurbulenzEngine.onload = function() {
 		});
 		world.addConstraint(paddleB.goal.constraintB);
 
-		paddleB.addDamage = function() {
+		paddleB.addDamage = function( value ) {
 			
-			paddleB.damage++;
+			var value = value === undefined ? 1 : value;
+			
+			paddleB.damage += value;
 			
 			if ( paddleB.damage >= paddleB.health ) {
 				return false;
@@ -381,20 +417,53 @@ TurbulenzEngine.onload = function() {
 		
 		paddleControl = function ( x, y, offset ) {
 			
-			var position = draw2D.viewportMap(x, y);
+			if ( state == 0 || state == 1 || state == 2 || state == 3 ) {
+				
+				var position = draw2D.viewportMap(x, y);
+				
+				var offset = offset ? ( offset === true ? 0.5 : offset ) : 0;
+				var offsetUnmap = draw2D.viewportUnmap(offset, 0);
+				offset = offsetUnmap[0];
+				
+				if ( position[0] <= 0+7 ) {
+					paddleA.move( x+(offset), y );
+					if ( state == 0 ) {
+						paddleA.spawned = true;
+					}
+				}
+				if ( position[0] >= viewWidth-7 ) {
+					paddleB.move( x+(-1*offset), y );
+					if ( state == 0 ) {
+						paddleB.spawned = true;
+					}
+				}
+				
+				if ( state == 0 && paddleA.spawned && paddleB.spawned ) {
+					state = 1;
+				}
 			
-			var offset = offset ? ( offset === true ? 0.5 : offset ) : 0;
-			var offsetUnmap = draw2D.viewportUnmap(offset, 0);
-			offset = offsetUnmap[0];
-			
-			if ( position[0] <= 0+7 ) {
-				paddleA.move( x+(offset), y );
-			}
-			if ( position[0] >= viewWidth-7 ) {
-				paddleB.move( x+(-1*offset), y );
 			}
 			
 		};
+		
+		/*inputDevice.addEventListener('mousedown', function( mouseCode, x, y ) {
+			if ( state == 0 ) {
+				var position = draw2D.viewportMap(x, y);
+				console.log(position);
+				if ( position[0] <= 0+7 ) {
+					paddleControl( x, y, 1 );
+					paddleA.spawned = true;
+				}
+				if ( position[0] >= viewWidth-7 ) {
+					paddleControl( x, y, 1 );
+					paddleB.spawned = true;
+				}
+				if ( paddleA.spawned && paddleB.spawned ) {
+					// transition to state 1.
+					state = 1;
+				}
+			}				
+		});*/
 		
 		inputDevice.addEventListener('mouseover', function( x, y ) {
 			paddleControl( x, y );
@@ -423,31 +492,88 @@ TurbulenzEngine.onload = function() {
 	// Goaling and stalling.
 	(function() {
 	
+		goaltimer = 0;
+		goalside = 0;
+		
 		goaling = function() {
 			
 			var position = ball.rigidBody.getPosition();
 			
 			if ( position[0] <= 0-1 ) {
-				if ( paddleA.addDamage() ) {
-					ball.spawn(-1);
-				} else {
-					ball.spawn();
-					
-				}
+				state = 3;
+				goaltimer = 0;
+				goalside = -1;
 			} else if ( position[0] >= viewWidth+1 ) {
-				if ( paddleB.addDamage() ) {
-					ball.spawn(1);
-				} else {
-					ball.spawn();
-				}
+				state = 3;
+				goaltimer = 0;
+				goalside = 1;
 			}
 			
 		};
+		
+		goalResult = function() {
+			
+			goaltimer += 0.02;
+			
+			if ( goaltimer >= 1 ) {
+				if ( goalside == -1 ) {
+					if ( paddleA.addDamage() ) {
+						state = 1;
+						goalside = 0;
+					} else {
+						state = 4;					
+					}
+				} if ( goalside == 1 ) {
+					if ( paddleB.addDamage() ) {
+						state = 1;
+						goalside = 0;
+					} else {
+						state = 4;
+					}
+				}
+				goaltimer = 0;
+			}
+			
+		}
+	
+		goalFinal = function() {
+			
+			
+			var fanfaretotal = Math.abs( paddleA.damage - paddleB.damage );
+			
+			if ( goaltimer <= 0 ) {				
+				if ( goalside == -1 ) {
+					paddleA.goal.rigidBody.setPosition([ -1, viewHeight/2 ]);
+					paddleA.spawned = false;
+				}
+				if ( goalside == 1 ) {
+					paddleB.goal.rigidBody.setPosition([ viewWidth+1, viewHeight/2 ]);
+					paddleB.spawned = false;
+				}				
+			}			
+			
+			if ( goaltimer < fanfaretotal+1 ) {
+				
+				if ( goaltimer >= 1 && (goaltimer - Math.floor(goaltimer)) <= 0.01 ) {
+					//fanfare(Math.floor(goaltimer))!
+				}
+				
+				goaltimer += 0.01;
+				
+			} else {
+				
+				paddleA.addDamage(-1*paddleA.damage);
+				paddleB.addDamage(-1*paddleB.damage);
+				
+				state = 0;
+				
+			}
+
+		}
 	
 	})();
 	
 	
-		
 	// Walls.
 		(function() {
 
@@ -574,8 +700,25 @@ TurbulenzEngine.onload = function() {
 		// Ball dynamics.
 		ball.dynamicDrag();
 		
-		// Paddle goals.
-		goaling();
+		switch (state) {
+			case 0:
+				//animation desired
+				break;
+			case 1:
+				ball.spawn();
+				break;
+			case 2:
+				goaling(); 
+				break;
+			case 3:
+				goalResult();
+				break;
+			case 4:
+				goalFinal();
+				break;
+			default:
+				break;
+		}
 		
 	}
 
